@@ -5,7 +5,8 @@ import { FormData } from '../lib/mock-ai';
 
 const INTEREST_OPTIONS = [
   "Dinosaurs", "Drawing", "Legos", "Music", "Sports", 
-  "Animals", "Space", "Cooking", "Stories", "Dancing"
+  "Animals", "Space", "Cooking", "Stories", "Dancing",
+  "Puzzles", "Brain Building"
 ];
 
 const TIME_OPTIONS = ["5 mins", "15 mins", "30 mins"];
