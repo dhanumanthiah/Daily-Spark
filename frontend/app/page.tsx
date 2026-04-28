@@ -1,31 +1,109 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
+import ActivityForm from '../components/ActivityForm';
+import ActivityCard from '../components/ActivityCard';
+import { generateActivity, FormData, ActivityData } from '../lib/mock-ai';
 
 export default function Home() {
+  const [activity, setActivity] = useState<ActivityData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastFormData, setLastFormData] = useState<FormData | null>(null);
+
+  const handleGenerate = async (data: FormData) => {
+    setIsLoading(true);
+    setError(null);
+    setLastFormData(data);
+    
+    try {
+      const result = await generateActivity(data);
+      setActivity(result);
+      // Scroll to top smoothly when result appears
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegenerate = () => {
+    if (lastFormData) {
+      handleGenerate(lastFormData);
+    }
+  };
+
+  const handleReset = () => {
+    setActivity(null);
+    setError(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col items-center justify-center text-white p-4">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[40%] -left-[20%] w-[70%] h-[70%] rounded-full bg-purple-500/20 blur-[120px]"></div>
-        <div className="absolute -bottom-[40%] -right-[20%] w-[70%] h-[70%] rounded-full bg-blue-500/20 blur-[120px]"></div>
-      </div>
+    <main className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       
-      <div className="relative z-10 flex flex-col items-center bg-white/5 backdrop-blur-xl border border-white/10 p-12 rounded-3xl shadow-2xl max-w-2xl w-full text-center">
-        <div className="w-20 h-20 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-8"></div>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-          Ready to Build
-        </h1>
-        <p className="text-lg text-gray-300 mb-8">
-          I'm Snapdev, your AI developer. Paste your PRD or describe your app idea, and I'll start building it right away!
-        </p>
-        <div className="flex gap-2 items-center text-sm text-purple-300 bg-purple-500/10 px-4 py-2 rounded-full border border-purple-500/20">
-          <span className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
-          </span>
-          Waiting for requirements...
+      {/* Header */}
+      <header className="text-center mb-10">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#D97706] text-white text-3xl mb-4 shadow-lg shadow-[#D97706]/20 transform -rotate-6">
+          ✨
         </div>
+        <h1 className="font-serif text-4xl sm:text-5xl font-bold text-[#2D2013] mb-3">
+          Daily Spark
+        </h1>
+        <p className="text-[#2D2013]/70 max-w-md mx-auto text-lg">
+          Personalized bonding activities for you and your child, generated in seconds.
+        </p>
+      </header>
+
+      {/* Error Message */}
+      {error && (
+        <div className="max-w-md mx-auto mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+          <span className="text-xl">⚠️</span>
+          <div className="flex-1">
+            <p className="font-medium">{error}</p>
+            <button 
+              onClick={handleRegenerate}
+              className="mt-2 text-sm font-bold underline hover:text-red-800"
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Area */}
+      <div className="relative">
+        {activity && !isLoading && !error ? (
+          <div className="space-y-6">
+            <button 
+              onClick={handleReset}
+              className="max-w-md mx-auto flex items-center gap-2 text-[#D97706] font-medium hover:text-[#B45309] transition-colors mb-4"
+            >
+              ← Back to form
+            </button>
+            <ActivityCard 
+              activity={activity} 
+              onRegenerate={handleRegenerate}
+              isLoading={isLoading}
+            />
+          </div>
+        ) : (
+          <div className={activity && isLoading ? "opacity-50 pointer-events-none transition-opacity" : ""}>
+            <ActivityForm 
+              onSubmit={handleGenerate} 
+              isLoading={isLoading} 
+            />
+          </div>
+        )}
       </div>
-    </div>
+
+      {/* Footer */}
+      <footer className="mt-16 text-center text-[#2D2013]/40 text-sm pb-8">
+        <p>Designed for connection. No login required.</p>
+      </footer>
+
+    </main>
   );
 }
+
