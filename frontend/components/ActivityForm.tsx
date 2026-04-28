@@ -66,6 +66,10 @@ export default function ActivityForm({ onSubmit, isLoading }: ActivityFormProps)
     });
   };
 
+  const handleClearInterests = () => {
+    setFormData(prev => ({ ...prev, interests: [] }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isFormValid && !isLoading) {
@@ -108,9 +112,20 @@ export default function ActivityForm({ onSubmit, isLoading }: ActivityFormProps)
 
       {/* Interests */}
       <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <label className="block text-sm font-medium text-[#2D2013]/80">Interests (Pick up to 4)</label>
-          <span className="text-xs text-[#2D2013]/50">{formData.interests.length}/4</span>
+        <div className="flex justify-between items-end mb-2">
+          <div>
+            <label className="block text-sm font-medium text-[#2D2013]/80">Interests (Pick up to 4)</label>
+            <span className="text-xs text-[#2D2013]/50">{formData.interests.length}/4 selected</span>
+          </div>
+          {formData.interests.length > 0 && (
+            <button
+              type="button"
+              onClick={handleClearInterests}
+              className="text-xs font-bold text-[#D97706] hover:text-[#B45309] transition-colors px-2 py-1 rounded-md hover:bg-[#D97706]/10"
+            >
+              Clear all
+            </button>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           {INTEREST_OPTIONS.map(interest => {
