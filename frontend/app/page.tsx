@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import ActivityForm from '../components/ActivityForm';
 import ActivityCard from '../components/ActivityCard';
 import DailySummary from '../components/DailySummary';
-import { generateActivity, FormData, ActivityData } from '../lib/mock-ai';
+import { generateActivity, getRecommendation, FormData, ActivityData } from '../lib/mock-ai';
 
 type ViewState = 'form' | 'activity' | 'summary';
 
@@ -17,35 +17,62 @@ export default function Home() {
   
   const [seenActivities, setSeenActivities] = useState<string[]>([]);
   const [completedActivities, setCompletedActivities] = useState<ActivityData[]>([]);
+  
+  // Recommendation State
+  const [recommendation, setRecommendation] = useState<{activity: ActivityData, reason: string} | null>(null);
 
-  // Load history and completed activities from localStorage on mount
+  // Load history, completed activities, and generate recommendation on mount
   useEffect(() => {
-    // Load seen activities
+    const today = new Date().toDateString();
+    let loadedSeen: string[] = [];
+    let previousCompleted: ActivityData[] = [];
+
+    // 1. Load seen activities
     const savedSeen = localStorage.getItem('dailySpark_seenActivities');
     if (savedSeen) {
       try {
-        setSeenActivities(JSON.parse(savedSeen));
+        loadedSeen = JSON.parse(savedSeen);
+        setSeenActivities(loadedSeen);
       } catch (e) {
         console.error("Failed to parse seen activities");
       }
     }
 
-    // Load completed activities for TODAY
+    // 2. Load completed activities
     const savedCompleted = localStorage.getItem('dailySpark_completedActivities');
     if (savedCompleted) {
       try {
         const parsed = JSON.parse(savedCompleted);
-        const today = new Date().toDateString();
-        
-        // Only load if the date matches today, otherwise it's a new day!
         if (parsed.date === today) {
+          // It's still today, load them into the current session
           setCompletedActivities(parsed.activities);
         } else {
-          // Clear old data
-          localStorage.removeItem('dailySpark_completedActivities');
+          // It's a new day! Save them as previous completed for the recommendation engine
+          previousCompleted = parsed.activities;
+          // We don't set them in state because today is a fresh start
         }
       } catch (e) {
         console.error("Failed to parse completed activities");
+      }
+    }
+
+    // 3. Load form data and generate recommendation if returning user
+    const savedForm = localStorage.getItem('dailySpark_formData');
+    if (savedForm) {
+      try {
+        const parsedForm = JSON.parse(savedForm);
+        setLastFormData(parsedForm);
+
+        // Check if we should show a recommendation (only once per day)
+        const dismissedDate = localStorage.getItem('dailySpark_recommendationDismissed');
+        if (dismissedDate !== today) {
+          // Generate a recommendation based on previous inputs and previous completed activities
+          getRecommendation(parsedForm, previousCompleted, loadedSeen).then(rec => {
+            setRecommendation(rec);
+          });
+        }
+      } catch (e) {
+        console.error("Failed to parse saved form data");
       }
     }
   }, []);
@@ -86,12 +113,10 @@ export default function Home() {
   };
 
   const handleCompleteActivity = (completedActivity: ActivityData) => {
-    // Prevent adding the exact same activity instance twice
     if (!completedActivities.find(a => a.name === completedActivity.name)) {
       const newCompleted = [...completedActivities, completedActivity];
       setCompletedActivities(newCompleted);
       
-      // Save to localStorage with today's date
       localStorage.setItem('dailySpark_completedActivities', JSON.stringify({
         date: new Date().toDateString(),
         activities: newCompleted
@@ -102,6 +127,30 @@ export default function Home() {
   const handleViewSummary = () => {
     setView('summary');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Recommendation Handlers
+  const handleAcceptRecommendation = () => {
+    if (!recommendation) return;
+    
+    // Add to seen history
+    const newSeen = [...seenActivities, recommendation.activity.id];
+    setSeenActivities(newSeen);
+    localStorage.setItem('dailySpark_seenActivities', JSON.stringify(newSeen));
+
+    // Set as current activity
+    setActivity(recommendation.activity);
+    setView('activity');
+    
+    // Dismiss so it doesn't show again today
+    localStorage.setItem('dailySpark_recommendationDismissed', new Date().toDateString());
+    setRecommendation(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDismissRecommendation = () => {
+    localStorage.setItem('dailySpark_recommendationDismissed', new Date().toDateString());
+    setRecommendation(null);
   };
 
   return (
@@ -119,7 +168,7 @@ export default function Home() {
           Personalized bonding activities for you and your child, generated in seconds.
         </p>
 
-        {/* Global Summary Button (only show if there are completed activities and we aren't already on the summary page) */}
+        {/* Global Summary Button */}
         {completedActivities.length > 0 && view !== 'summary' && (
           <button 
             onClick={handleViewSummary}
@@ -179,6 +228,50 @@ export default function Home() {
 
         {view === 'form' && (
           <div className={isLoading ? "opacity-50 pointer-events-none transition-opacity" : ""}>
+            
+            {/* Next-Day Recommendation Banner */}
+            {recommendation && (
+              <div className="max-w-md mx-auto mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="bg-gradient-to-br from-[#2D2013] to-[#4A3620] rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-[#2D2013]/20 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                  
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-2xl">👋</span>
+                      <h2 className="font-serif text-xl font-bold text-[#FDF6EC]">Welcome back!</h2>
+                    </div>
+                    
+                    <p className="text-[#FDF6EC]/80 text-sm mb-6 leading-relaxed">
+                      {recommendation.reason}
+                    </p>
+
+                    <div className="bg-white/10 rounded-2xl p-4 mb-6 border border-white/10 backdrop-blur-sm flex items-center gap-4">
+                      <div className="text-4xl shrink-0">{recommendation.activity.emoji}</div>
+                      <div>
+                        <h3 className="font-bold text-lg leading-tight mb-1">{recommendation.activity.name}</h3>
+                        <p className="text-white/60 text-sm">{recommendation.activity.duration}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button
+                        onClick={handleAcceptRecommendation}
+                        className="flex-1 bg-[#D97706] hover:bg-[#B45309] text-white py-3 rounded-xl font-bold transition-colors shadow-lg shadow-[#D97706]/20"
+                      >
+                        Start Activity
+                      </button>
+                      <button
+                        onClick={handleDismissRecommendation}
+                        className="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold transition-colors"
+                      >
+                        Plan My Own
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <ActivityForm 
               onSubmit={handleGenerate} 
               isLoading={isLoading} 

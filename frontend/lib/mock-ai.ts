@@ -148,3 +148,54 @@ export async function generateActivity(data: FormData, seenActivities: string[] 
   };
 }
 
+// Generates a recommendation for the next day based on previous inputs and completed activities
+export async function getRecommendation(
+  formData: FormData,
+  lastCompleted: ActivityData[],
+  seenActivities: string[]
+): Promise<{ activity: ActivityData; reason: string }> {
+  
+  // Pick a random interest from their saved list to keep it fresh
+  const primaryInterest = formData.interests.length > 0
+    ? formData.interests[Math.floor(Math.random() * formData.interests.length)]
+    : "Default";
+
+  let reason = `Based on ${formData.name}'s interests, we found a perfect activity to start your day!`;
+
+  // If they completed activities previously, reference the skills they built
+  if (lastCompleted.length > 0) {
+    const lastSkill = lastCompleted[0].builds[0];
+    reason = `Last time you focused on ${lastSkill}. Today, let's mix it up with some ${primaryInterest} fun!`;
+  } else if (formData.mood === 'Hyper' || formData.mood === 'Happy & Energetic') {
+    reason = `Since ${formData.name} has been energetic lately, here's a great way to channel that energy today!`;
+  } else if (formData.mood === 'Quiet & Calm' || formData.mood === 'A bit sad') {
+    reason = `A gentle, calming ${primaryInterest} activity perfect for ${formData.name}'s mood.`;
+  }
+
+  // Generate activity instantly without the random failure chance for recommendations
+  const availableActivities = activitiesDB[primaryInterest] || activitiesDB["Default"];
+  let unseenActivities = availableActivities.filter(a => !seenActivities.includes(a.name));
+  if (unseenActivities.length === 0) unseenActivities = availableActivities;
+
+  const baseActivity = unseenActivities[Math.floor(Math.random() * unseenActivities.length)];
+
+  let activityName = baseActivity.name;
+  let starter = baseActivity.starter.replace(/\[NAME\]/g, formData.name);
+  let howTo = baseActivity.howTo;
+
+  return {
+    activity: {
+      id: baseActivity.name,
+      emoji: baseActivity.emoji,
+      name: activityName,
+      tagline: baseActivity.tagline,
+      duration: formData.time,
+      starter,
+      howTo,
+      watchFor: baseActivity.watchFor,
+      builds: baseActivity.builds
+    },
+    reason
+  };
+}
+
