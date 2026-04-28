@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ActivityForm from '../components/ActivityForm';
 import ActivityCard from '../components/ActivityCard';
 import { generateActivity, FormData, ActivityData } from '../lib/mock-ai';
@@ -10,6 +10,19 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastFormData, setLastFormData] = useState<FormData | null>(null);
+  const [seenActivities, setSeenActivities] = useState<string[]>([]);
+
+  // Load seen activities history from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('dailySpark_seenActivities');
+    if (saved) {
+      try {
+        setSeenActivities(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse seen activities");
+      }
+    }
+  }, []);
 
   const handleGenerate = async (data: FormData) => {
     setIsLoading(true);
@@ -17,7 +30,14 @@ export default function Home() {
     setLastFormData(data);
     
     try {
-      const result = await generateActivity(data);
+      // Pass the history of seen activities to the generator
+      const result = await generateActivity(data, seenActivities);
+      
+      // Add the new activity's base ID to the history
+      const newSeen = [...seenActivities, result.id];
+      setSeenActivities(newSeen);
+      localStorage.setItem('dailySpark_seenActivities', JSON.stringify(newSeen));
+
       setActivity(result);
       // Scroll to top smoothly when result appears
       window.scrollTo({ top: 0, behavior: 'smooth' });
