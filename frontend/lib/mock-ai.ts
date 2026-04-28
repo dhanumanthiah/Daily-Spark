@@ -109,7 +109,15 @@ export async function generateActivity(data: FormData, seenActivities: string[] 
   
   // If they've seen all of them, reset the pool for this interest
   if (unseenActivities.length === 0) {
-    unseenActivities = availableActivities;
+    // CRITICAL FIX: To prevent immediate repeats when the pool resets, 
+    // we exclude the most recently seen activity (the one they are currently looking at)
+    const lastSeen = seenActivities.length > 0 ? seenActivities[seenActivities.length - 1] : null;
+    unseenActivities = availableActivities.filter(a => a.name !== lastSeen);
+    
+    // If somehow it's still empty (e.g., only 1 activity exists total), fallback to all
+    if (unseenActivities.length === 0) {
+      unseenActivities = availableActivities;
+    }
   }
   
   // Pick a random activity from the unseen list
@@ -175,7 +183,12 @@ export async function getRecommendation(
   // Generate activity instantly without the random failure chance for recommendations
   const availableActivities = activitiesDB[primaryInterest] || activitiesDB["Default"];
   let unseenActivities = availableActivities.filter(a => !seenActivities.includes(a.name));
-  if (unseenActivities.length === 0) unseenActivities = availableActivities;
+  
+  if (unseenActivities.length === 0) {
+    const lastSeen = seenActivities.length > 0 ? seenActivities[seenActivities.length - 1] : null;
+    unseenActivities = availableActivities.filter(a => a.name !== lastSeen);
+    if (unseenActivities.length === 0) unseenActivities = availableActivities;
+  }
 
   const baseActivity = unseenActivities[Math.floor(Math.random() * unseenActivities.length)];
 
