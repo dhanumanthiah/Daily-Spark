@@ -3,23 +3,49 @@
 import React, { useState, useEffect } from 'react';
 import ActivityForm from '../components/ActivityForm';
 import ActivityCard from '../components/ActivityCard';
+import DailySummary from '../components/DailySummary';
 import { generateActivity, FormData, ActivityData } from '../lib/mock-ai';
 
+type ViewState = 'form' | 'activity' | 'summary';
+
 export default function Home() {
+  const [view, setView] = useState<ViewState>('form');
   const [activity, setActivity] = useState<ActivityData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastFormData, setLastFormData] = useState<FormData | null>(null);
+  
   const [seenActivities, setSeenActivities] = useState<string[]>([]);
+  const [completedActivities, setCompletedActivities] = useState<ActivityData[]>([]);
 
-  // Load seen activities history from localStorage on mount
+  // Load history and completed activities from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('dailySpark_seenActivities');
-    if (saved) {
+    // Load seen activities
+    const savedSeen = localStorage.getItem('dailySpark_seenActivities');
+    if (savedSeen) {
       try {
-        setSeenActivities(JSON.parse(saved));
+        setSeenActivities(JSON.parse(savedSeen));
       } catch (e) {
         console.error("Failed to parse seen activities");
+      }
+    }
+
+    // Load completed activities for TODAY
+    const savedCompleted = localStorage.getItem('dailySpark_completedActivities');
+    if (savedCompleted) {
+      try {
+        const parsed = JSON.parse(savedCompleted);
+        const today = new Date().toDateString();
+        
+        // Only load if the date matches today, otherwise it's a new day!
+        if (parsed.date === today) {
+          setCompletedActivities(parsed.activities);
+        } else {
+          // Clear old data
+          localStorage.removeItem('dailySpark_completedActivities');
+        }
+      } catch (e) {
+        console.error("Failed to parse completed activities");
       }
     }
   }, []);
@@ -28,18 +54,16 @@ export default function Home() {
     setIsLoading(true);
     setError(null);
     setLastFormData(data);
+    setView('activity');
     
     try {
-      // Pass the history of seen activities to the generator
       const result = await generateActivity(data, seenActivities);
       
-      // Add the new activity's base ID to the history
       const newSeen = [...seenActivities, result.id];
       setSeenActivities(newSeen);
       localStorage.setItem('dailySpark_seenActivities', JSON.stringify(newSeen));
 
       setActivity(result);
-      // Scroll to top smoothly when result appears
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -57,6 +81,26 @@ export default function Home() {
   const handleReset = () => {
     setActivity(null);
     setError(null);
+    setView('form');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCompleteActivity = (completedActivity: ActivityData) => {
+    // Prevent adding the exact same activity instance twice
+    if (!completedActivities.find(a => a.name === completedActivity.name)) {
+      const newCompleted = [...completedActivities, completedActivity];
+      setCompletedActivities(newCompleted);
+      
+      // Save to localStorage with today's date
+      localStorage.setItem('dailySpark_completedActivities', JSON.stringify({
+        date: new Date().toDateString(),
+        activities: newCompleted
+      }));
+    }
+  };
+
+  const handleViewSummary = () => {
+    setView('summary');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -64,7 +108,7 @@ export default function Home() {
     <main className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       
       {/* Header */}
-      <header className="text-center mb-10">
+      <header className="text-center mb-10 relative">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#D97706] text-white text-3xl mb-4 shadow-lg shadow-[#D97706]/20 transform -rotate-6">
           ✨
         </div>
@@ -74,10 +118,24 @@ export default function Home() {
         <p className="text-[#2D2013]/70 max-w-md mx-auto text-lg">
           Personalized bonding activities for you and your child, generated in seconds.
         </p>
+
+        {/* Global Summary Button (only show if there are completed activities and we aren't already on the summary page) */}
+        {completedActivities.length > 0 && view !== 'summary' && (
+          <button 
+            onClick={handleViewSummary}
+            className="absolute top-0 right-0 sm:right-4 bg-white border border-[#D97706]/20 text-[#D97706] px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:bg-[#FDF6EC] transition-colors flex items-center gap-2"
+          >
+            <span>📊</span> 
+            <span className="hidden sm:inline">Today's Summary</span>
+            <span className="bg-[#D97706] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              {completedActivities.length}
+            </span>
+          </button>
+        )}
       </header>
 
       {/* Error Message */}
-      {error && (
+      {error && view === 'activity' && (
         <div className="max-w-md mx-auto mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
           <span className="text-xl">⚠️</span>
           <div className="flex-1">
@@ -94,7 +152,14 @@ export default function Home() {
 
       {/* Main Content Area */}
       <div className="relative">
-        {activity && !isLoading && !error ? (
+        {view === 'summary' && (
+          <DailySummary 
+            completedActivities={completedActivities} 
+            onBack={handleReset} 
+          />
+        )}
+
+        {view === 'activity' && activity && !error && (
           <div className="space-y-6">
             <button 
               onClick={handleReset}
@@ -105,11 +170,15 @@ export default function Home() {
             <ActivityCard 
               activity={activity} 
               onRegenerate={handleRegenerate}
+              onComplete={handleCompleteActivity}
+              onViewSummary={handleViewSummary}
               isLoading={isLoading}
             />
           </div>
-        ) : (
-          <div className={activity && isLoading ? "opacity-50 pointer-events-none transition-opacity" : ""}>
+        )}
+
+        {view === 'form' && (
+          <div className={isLoading ? "opacity-50 pointer-events-none transition-opacity" : ""}>
             <ActivityForm 
               onSubmit={handleGenerate} 
               isLoading={isLoading} 

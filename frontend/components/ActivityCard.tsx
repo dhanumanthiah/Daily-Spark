@@ -6,10 +6,12 @@ import { ActivityData } from '../lib/mock-ai';
 interface ActivityCardProps {
   activity: ActivityData;
   onRegenerate: () => void;
+  onComplete: (activity: ActivityData) => void;
+  onViewSummary: () => void;
   isLoading: boolean;
 }
 
-export default function ActivityCard({ activity, onRegenerate, isLoading }: ActivityCardProps) {
+export default function ActivityCard({ activity, onRegenerate, onComplete, onViewSummary, isLoading }: ActivityCardProps) {
   const [isCompleted, setIsCompleted] = useState(false);
 
   // Reset completion state when a new activity is loaded
@@ -19,9 +21,10 @@ export default function ActivityCard({ activity, onRegenerate, isLoading }: Acti
 
   const handleComplete = () => {
     setIsCompleted(true);
-    // Scroll slightly to show the success message if needed
+    onComplete(activity);
+    // Scroll slightly to show the success message
     setTimeout(() => {
-      window.scrollBy({ top: 200, behavior: 'smooth' });
+      window.scrollBy({ top: 250, behavior: 'smooth' });
     }, 100);
   };
 
@@ -122,7 +125,7 @@ export default function ActivityCard({ activity, onRegenerate, isLoading }: Acti
             <p className="text-[#2D2013]/80 mb-4">
               Amazing job! By doing this activity, you just helped build:
             </p>
-            <div className="flex flex-wrap justify-center gap-2 mb-2">
+            <div className="flex flex-wrap justify-center gap-2 mb-6">
               {activity.builds.map((skill, index) => (
                 <span 
                   key={index}
@@ -132,6 +135,12 @@ export default function ActivityCard({ activity, onRegenerate, isLoading }: Acti
                 </span>
               ))}
             </div>
+            <button
+              onClick={onViewSummary}
+              className="w-full py-3 rounded-xl font-bold transition-all bg-[#2D2013] text-white hover:bg-[#4A3620] shadow-md"
+            >
+              📊 View Today's Summary
+            </button>
           </div>
         )}
       </div>
