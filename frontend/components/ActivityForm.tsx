@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FormData } from '../lib/mock-ai';
 
 const INTEREST_OPTIONS = [
@@ -20,6 +20,7 @@ interface ActivityFormProps {
 }
 
 export default function ActivityForm({ onSubmit, isLoading }: ActivityFormProps) {
+  const [isMounted, setIsMounted] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: '',
     age: '',
@@ -29,6 +30,26 @@ export default function ActivityForm({ onSubmit, isLoading }: ActivityFormProps)
     hasSpecialNeeds: false,
     specialNeedsNote: ''
   });
+
+  // Load saved form data from localStorage on mount
+  useEffect(() => {
+    setIsMounted(true);
+    const saved = localStorage.getItem('dailySpark_formData');
+    if (saved) {
+      try {
+        setFormData(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse saved form data");
+      }
+    }
+  }, []);
+
+  // Save form data to localStorage whenever it changes
+  useEffect(() => {
+    if (isMounted) {
+      localStorage.setItem('dailySpark_formData', JSON.stringify(formData));
+    }
+  }, [formData, isMounted]);
 
   const isFormValid = formData.name.trim() !== '' && formData.age.trim() !== '';
 
