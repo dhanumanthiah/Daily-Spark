@@ -78,24 +78,24 @@ export default function ActivityForm({ onSubmit, isLoading }: ActivityFormProps)
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto space-y-6 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-[#D97706]/10">
+    <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto space-y-6 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-[#10B981]/10">
       
       {/* Name & Age */}
       <div className="flex gap-4">
         <div className="flex-1 space-y-2">
-          <label htmlFor="name" className="block text-sm font-medium text-[#2D2013]/80">Child's Name *</label>
+          <label htmlFor="name" className="block text-sm font-medium text-[#064E3B]/80">Child's Name *</label>
           <input
             type="text"
             id="name"
             required
             value={formData.name}
             onChange={(e) => setFormData({...formData, name: e.target.value})}
-            className="w-full px-4 py-3 rounded-xl border border-[#D97706]/20 bg-[#FDF6EC]/50 focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent transition-all"
+            className="w-full px-4 py-3 rounded-xl border border-[#10B981]/20 bg-[#F0FDF4]/50 focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:border-transparent transition-all"
             placeholder="e.g. Leo"
           />
         </div>
         <div className="w-24 space-y-2">
-          <label htmlFor="age" className="block text-sm font-medium text-[#2D2013]/80">Age *</label>
+          <label htmlFor="age" className="block text-sm font-medium text-[#064E3B]/80">Age *</label>
           <input
             type="number"
             id="age"
@@ -104,7 +104,7 @@ export default function ActivityForm({ onSubmit, isLoading }: ActivityFormProps)
             required
             value={formData.age}
             onChange={(e) => setFormData({...formData, age: e.target.value})}
-            className="w-full px-4 py-3 rounded-xl border border-[#D97706]/20 bg-[#FDF6EC]/50 focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent transition-all"
+            className="w-full px-4 py-3 rounded-xl border border-[#10B981]/20 bg-[#F0FDF4]/50 focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:border-transparent transition-all"
             placeholder="yrs"
           />
         </div>
@@ -114,14 +114,14 @@ export default function ActivityForm({ onSubmit, isLoading }: ActivityFormProps)
       <div className="space-y-2">
         <div className="flex justify-between items-end mb-2">
           <div>
-            <label className="block text-sm font-medium text-[#2D2013]/80">Interests (Pick up to 4)</label>
-            <span className="text-xs text-[#2D2013]/50">{formData.interests.length}/4 selected</span>
+            <label className="block text-sm font-medium text-[#064E3B]/80">Interests (Pick up to 4)</label>
+            <span className="text-xs text-[#064E3B]/50">{formData.interests.length}/4 selected</span>
           </div>
           {formData.interests.length > 0 && (
             <button
               type="button"
               onClick={handleClearInterests}
-              className="text-xs font-bold text-[#D97706] hover:text-[#B45309] transition-colors px-2 py-1 rounded-md hover:bg-[#D97706]/10"
+              className="text-xs font-bold text-[#10B981] hover:text-[#059669] transition-colors px-2 py-1 rounded-md hover:bg-[#10B981]/10"
             >
               Clear all
             </button>
@@ -139,8 +139,8 @@ export default function ActivityForm({ onSubmit, isLoading }: ActivityFormProps)
                 disabled={isDisabled}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all min-h-[44px] ${
                   isSelected 
-                    ? 'bg-[#D97706] text-white shadow-md shadow-[#D97706]/20' 
-                    : 'bg-[#FDF6EC] text-[#2D2013]/70 border border-[#D97706]/20 hover:border-[#D97706]/50'
+                    ? 'bg-[#10B981] text-white shadow-md shadow-[#10B981]/20' 
+                    : 'bg-[#F0FDF4] text-[#064E3B]/70 border border-[#10B981]/20 hover:border-[#10B981]/50'
                 } ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 {interest}
@@ -152,7 +152,7 @@ export default function ActivityForm({ onSubmit, isLoading }: ActivityFormProps)
 
       {/* Time Available */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-[#2D2013]/80">Time Available</label>
+        <label className="block text-sm font-medium text-[#064E3B]/80">Time Available</label>
         <div className="flex gap-2">
           {TIME_OPTIONS.map(time => (
             <button
@@ -161,8 +161,8 @@ export default function ActivityForm({ onSubmit, isLoading }: ActivityFormProps)
               onClick={() => setFormData({...formData, time})}
               className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all min-h-[44px] ${
                 formData.time === time
-                  ? 'bg-[#D97706]/10 border-2 border-[#D97706] text-[#D97706]'
-                  : 'bg-[#FDF6EC] border border-[#D97706]/20 text-[#2D2013]/70 hover:border-[#D97706]/50'
+                  ? 'bg-[#10B981]/10 border-2 border-[#10B981] text-[#10B981]'
+                  : 'bg-[#F0FDF4] border border-[#10B981]/20 text-[#064E3B]/70 hover:border-[#10B981]/50'
               }`}
             >
               {time}
@@ -173,12 +173,12 @@ export default function ActivityForm({ onSubmit, isLoading }: ActivityFormProps)
 
       {/* Mood */}
       <div className="space-y-2">
-        <label htmlFor="mood" className="block text-sm font-medium text-[#2D2013]/80">Child's Mood Today</label>
+        <label htmlFor="mood" className="block text-sm font-medium text-[#064E3B]/80">Child's Mood Today</label>
         <select
           id="mood"
           value={formData.mood}
           onChange={(e) => setFormData({...formData, mood: e.target.value})}
-          className="w-full px-4 py-3 rounded-xl border border-[#D97706]/20 bg-[#FDF6EC]/50 focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent transition-all appearance-none min-h-[44px]"
+          className="w-full px-4 py-3 rounded-xl border border-[#10B981]/20 bg-[#F0FDF4]/50 focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:border-transparent transition-all appearance-none min-h-[44px]"
         >
           {MOOD_OPTIONS.map(mood => (
             <option key={mood} value={mood}>{mood}</option>
@@ -187,16 +187,16 @@ export default function ActivityForm({ onSubmit, isLoading }: ActivityFormProps)
       </div>
 
       {/* Special Needs */}
-      <div className="space-y-4 pt-2 border-t border-[#D97706]/10">
+      <div className="space-y-4 pt-2 border-t border-[#10B981]/10">
         <div className="flex items-center justify-between">
-          <label htmlFor="specialNeeds" className="text-sm font-medium text-[#2D2013]/80">Any special needs?</label>
+          <label htmlFor="specialNeeds" className="text-sm font-medium text-[#064E3B]/80">Any special needs?</label>
           <button
             type="button"
             role="switch"
             aria-checked={formData.hasSpecialNeeds}
             onClick={() => setFormData({...formData, hasSpecialNeeds: !formData.hasSpecialNeeds})}
             className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors min-h-[44px] min-w-[44px] flex-shrink-0 ${
-              formData.hasSpecialNeeds ? 'bg-[#D97706]' : 'bg-gray-200'
+              formData.hasSpecialNeeds ? 'bg-[#10B981]' : 'bg-gray-200'
             }`}
           >
             <span className="sr-only">Toggle special needs</span>
@@ -214,7 +214,7 @@ export default function ActivityForm({ onSubmit, isLoading }: ActivityFormProps)
               value={formData.specialNeedsNote}
               onChange={(e) => setFormData({...formData, specialNeedsNote: e.target.value})}
               placeholder="e.g. autism, ADHD, sensory sensitivities..."
-              className="w-full px-4 py-3 rounded-xl border border-[#D97706]/20 bg-[#FDF6EC]/50 focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent transition-all min-h-[100px] resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-[#10B981]/20 bg-[#F0FDF4]/50 focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:border-transparent transition-all min-h-[100px] resize-none"
             />
           </div>
         )}
@@ -226,7 +226,7 @@ export default function ActivityForm({ onSubmit, isLoading }: ActivityFormProps)
         disabled={!isFormValid || isLoading}
         className={`w-full py-4 rounded-2xl font-serif text-lg font-bold transition-all min-h-[56px] flex items-center justify-center gap-2 ${
           isFormValid && !isLoading
-            ? 'bg-[#D97706] text-white shadow-lg shadow-[#D97706]/30 hover:bg-[#B45309] hover:-translate-y-0.5'
+            ? 'bg-[#10B981] text-white shadow-lg shadow-[#10B981]/30 hover:bg-[#059669] hover:-translate-y-0.5'
             : 'bg-gray-200 text-gray-400 cursor-not-allowed'
         }`}
       >

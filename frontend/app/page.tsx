@@ -20,6 +20,7 @@ export default function Home() {
   
   // Recommendation State
   const [recommendation, setRecommendation] = useState<{activity: ActivityData, reason: string} | null>(null);
+  const [isRecommendationDismissed, setIsRecommendationDismissed] = useState(false);
 
   // Load history, completed activities, and generate recommendation on mount
   useEffect(() => {
@@ -49,7 +50,6 @@ export default function Home() {
         } else {
           // It's a new day! Save them as previous completed for the recommendation engine
           previousCompleted = parsed.activities;
-          // We don't set them in state because today is a fresh start
         }
       } catch (e) {
         console.error("Failed to parse completed activities");
@@ -63,14 +63,17 @@ export default function Home() {
         const parsedForm = JSON.parse(savedForm);
         setLastFormData(parsedForm);
 
-        // Check if we should show a recommendation (only once per day)
+        // Check if it was dismissed today
         const dismissedDate = localStorage.getItem('dailySpark_recommendationDismissed');
-        if (dismissedDate !== today) {
-          // Generate a recommendation based on previous inputs and previous completed activities
-          getRecommendation(parsedForm, previousCompleted, loadedSeen).then(rec => {
-            setRecommendation(rec);
-          });
+        if (dismissedDate === today) {
+          setIsRecommendationDismissed(true);
         }
+
+        // Always generate the recommendation so we have it available if they want to see it again
+        getRecommendation(parsedForm, previousCompleted, loadedSeen).then(rec => {
+          setRecommendation(rec);
+        });
+        
       } catch (e) {
         console.error("Failed to parse saved form data");
       }
@@ -142,15 +145,20 @@ export default function Home() {
     setActivity(recommendation.activity);
     setView('activity');
     
-    // Dismiss so it doesn't show again today
+    // Dismiss so it doesn't show as a big banner again today
     localStorage.setItem('dailySpark_recommendationDismissed', new Date().toDateString());
-    setRecommendation(null);
+    setIsRecommendationDismissed(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDismissRecommendation = () => {
     localStorage.setItem('dailySpark_recommendationDismissed', new Date().toDateString());
-    setRecommendation(null);
+    setIsRecommendationDismissed(true);
+  };
+
+  const handleRestoreRecommendation = () => {
+    localStorage.removeItem('dailySpark_recommendationDismissed');
+    setIsRecommendationDismissed(false);
   };
 
   return (
@@ -158,13 +166,13 @@ export default function Home() {
       
       {/* Header */}
       <header className="text-center mb-10 relative">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#D97706] text-white text-3xl mb-4 shadow-lg shadow-[#D97706]/20 transform -rotate-6">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#10B981] text-white text-3xl mb-4 shadow-lg shadow-[#10B981]/20 transform -rotate-6">
           ✨
         </div>
-        <h1 className="font-serif text-4xl sm:text-5xl font-bold text-[#2D2013] mb-3">
+        <h1 className="font-serif text-4xl sm:text-5xl font-bold text-[#064E3B] mb-3">
           Daily Spark
         </h1>
-        <p className="text-[#2D2013]/70 max-w-md mx-auto text-lg">
+        <p className="text-[#064E3B]/70 max-w-md mx-auto text-lg">
           Personalized bonding activities for you and your child, generated in seconds.
         </p>
 
@@ -172,11 +180,11 @@ export default function Home() {
         {completedActivities.length > 0 && view !== 'summary' && (
           <button 
             onClick={handleViewSummary}
-            className="absolute top-0 right-0 sm:right-4 bg-white border border-[#D97706]/20 text-[#D97706] px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:bg-[#FDF6EC] transition-colors flex items-center gap-2"
+            className="absolute top-0 right-0 sm:right-4 bg-white border border-[#10B981]/20 text-[#10B981] px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:bg-[#F0FDF4] transition-colors flex items-center gap-2"
           >
             <span>📊</span> 
             <span className="hidden sm:inline">Today's Summary</span>
-            <span className="bg-[#D97706] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+            <span className="bg-[#10B981] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
               {completedActivities.length}
             </span>
           </button>
@@ -212,7 +220,7 @@ export default function Home() {
           <div className="space-y-6">
             <button 
               onClick={handleReset}
-              className="max-w-md mx-auto flex items-center gap-2 text-[#D97706] font-medium hover:text-[#B45309] transition-colors mb-4"
+              className="max-w-md mx-auto flex items-center gap-2 text-[#10B981] font-medium hover:text-[#059669] transition-colors mb-4"
             >
               ← Back to form
             </button>
@@ -230,18 +238,18 @@ export default function Home() {
           <div className={isLoading ? "opacity-50 pointer-events-none transition-opacity" : ""}>
             
             {/* Next-Day Recommendation Banner */}
-            {recommendation && (
+            {recommendation && !isRecommendationDismissed && (
               <div className="max-w-md mx-auto mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
-                <div className="bg-gradient-to-br from-[#2D2013] to-[#4A3620] rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-[#2D2013]/20 relative overflow-hidden">
+                <div className="bg-gradient-to-br from-[#064E3B] to-[#065F46] rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-[#064E3B]/20 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
                   
                   <div className="relative z-10">
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-2xl">👋</span>
-                      <h2 className="font-serif text-xl font-bold text-[#FDF6EC]">Welcome back!</h2>
+                      <h2 className="font-serif text-xl font-bold text-[#F0FDF4]">Welcome back!</h2>
                     </div>
                     
-                    <p className="text-[#FDF6EC]/80 text-sm mb-6 leading-relaxed">
+                    <p className="text-[#F0FDF4]/80 text-sm mb-6 leading-relaxed">
                       {recommendation.reason}
                     </p>
 
@@ -256,7 +264,7 @@ export default function Home() {
                     <div className="flex flex-col sm:flex-row gap-3">
                       <button
                         onClick={handleAcceptRecommendation}
-                        className="flex-1 bg-[#D97706] hover:bg-[#B45309] text-white py-3 rounded-xl font-bold transition-colors shadow-lg shadow-[#D97706]/20"
+                        className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white py-3 rounded-xl font-bold transition-colors shadow-lg shadow-[#10B981]/20"
                       >
                         Start Activity
                       </button>
@@ -272,6 +280,18 @@ export default function Home() {
               </div>
             )}
 
+            {/* Restore Recommendation Button */}
+            {recommendation && isRecommendationDismissed && (
+              <div className="max-w-md mx-auto mb-6 flex justify-center animate-in fade-in">
+                <button
+                  onClick={handleRestoreRecommendation}
+                  className="bg-[#F0FDF4] border border-[#10B981]/20 text-[#10B981] px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:bg-[#10B981]/10 transition-colors flex items-center gap-2"
+                >
+                  💡 Show Today's Suggestion
+                </button>
+              </div>
+            )}
+
             <ActivityForm 
               onSubmit={handleGenerate} 
               isLoading={isLoading} 
@@ -281,7 +301,7 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="mt-16 text-center text-[#2D2013]/40 text-sm pb-8">
+      <footer className="mt-16 text-center text-[#064E3B]/40 text-sm pb-8">
         <p>Designed for connection. No login required.</p>
       </footer>
 

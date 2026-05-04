@@ -25,7 +25,7 @@ export default function DailySummary({ completedActivities, onBack }: DailySumma
     <div className="w-full max-w-md mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
       
       {/* Header Card */}
-      <div className="bg-gradient-to-br from-[#D97706] to-[#B45309] rounded-3xl p-8 text-center text-white shadow-xl shadow-[#D97706]/30 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#10B981] to-[#059669] rounded-3xl p-8 text-center text-white shadow-xl shadow-[#10B981]/30 relative overflow-hidden">
         <div className="absolute -top-10 -right-10 text-9xl opacity-10">🏆</div>
         <div className="absolute -bottom-10 -left-10 text-9xl opacity-10">✨</div>
         
@@ -39,8 +39,8 @@ export default function DailySummary({ completedActivities, onBack }: DailySumma
       </div>
 
       {/* Skills Summary */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-[#D97706]/10">
-        <h3 className="font-serif text-xl font-bold text-[#2D2013] mb-4 flex items-center gap-2">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-[#10B981]/10">
+        <h3 className="font-serif text-xl font-bold text-[#064E3B] mb-4 flex items-center gap-2">
           <span>🧠</span> Skills You Built Today
         </h3>
         
@@ -48,11 +48,11 @@ export default function DailySummary({ completedActivities, onBack }: DailySumma
           {sortedSkills.map(([skill, count]) => (
             <div 
               key={skill}
-              className="flex items-center gap-2 px-4 py-2 bg-[#FDF6EC] border border-[#D97706]/20 rounded-full"
+              className="flex items-center gap-2 px-4 py-2 bg-[#F0FDF4] border border-[#10B981]/20 rounded-full"
             >
-              <span className="text-[#2D2013] font-medium">{skill}</span>
+              <span className="text-[#064E3B] font-medium">{skill}</span>
               {count > 1 && (
-                <span className="bg-[#D97706] text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                <span className="bg-[#10B981] text-white text-xs font-bold px-2 py-0.5 rounded-full">
                   x{count}
                 </span>
               )}
@@ -62,20 +62,20 @@ export default function DailySummary({ completedActivities, onBack }: DailySumma
       </div>
 
       {/* Activity Log */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-[#D97706]/10">
-        <h3 className="font-serif text-xl font-bold text-[#2D2013] mb-4 flex items-center gap-2">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-[#10B981]/10">
+        <h3 className="font-serif text-xl font-bold text-[#064E3B] mb-4 flex items-center gap-2">
           <span>📝</span> Activity Log
         </h3>
         
         <div className="space-y-4">
           {completedActivities.map((activity, index) => (
-            <div key={`${activity.id}-${index}`} className="flex items-start gap-4 p-4 rounded-2xl bg-[#FDF6EC]/50 border border-[#D97706]/10">
+            <div key={`${activity.id}-${index}`} className="flex items-start gap-4 p-4 rounded-2xl bg-[#F0FDF4]/50 border border-[#10B981]/10">
               <div className="text-3xl bg-white w-12 h-12 rounded-xl flex items-center justify-center shadow-sm shrink-0">
                 {activity.emoji}
               </div>
               <div>
-                <h4 className="font-bold text-[#2D2013]">{activity.name}</h4>
-                <p className="text-sm text-[#2D2013]/60">{activity.duration}</p>
+                <h4 className="font-bold text-[#064E3B]">{activity.name}</h4>
+                <p className="text-sm text-[#064E3B]/60">{activity.duration}</p>
               </div>
             </div>
           ))}
@@ -85,7 +85,7 @@ export default function DailySummary({ completedActivities, onBack }: DailySumma
       {/* Back Button */}
       <button
         onClick={onBack}
-        className="w-full py-4 rounded-2xl font-serif text-lg font-bold transition-all min-h-[56px] flex items-center justify-center gap-2 bg-white text-[#2D2013] border-2 border-[#D97706]/20 hover:border-[#D97706] hover:bg-[#FDF6EC] shadow-sm"
+        className="w-full py-4 rounded-2xl font-serif text-lg font-bold transition-all min-h-[56px] flex items-center justify-center gap-2 bg-white text-[#064E3B] border-2 border-[#10B981]/20 hover:border-[#10B981] hover:bg-[#F0FDF4] shadow-sm"
       >
         ← Plan Another Activity
       </button>

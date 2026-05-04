@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${playfair.variable} font-sans bg-[#FDF6EC] text-[#2D2013] antialiased min-h-screen`}
+        className={`${inter.variable} ${playfair.variable} font-sans bg-[#F0FDF4] text-[#064E3B] antialiased min-h-screen`}
         suppressHydrationWarning
       >
         <Script id="route-tracking" strategy="afterInteractive">
